@@ -12,9 +12,13 @@
 """
 #!/usr/bin/env python
 #encoding:utf-8
+try:
+    from django.contrib.syndication.feeds import Feed
+except ImportError:
+    from django.contrib.syndication.views import Feed
+
 import itertools
 
-from django.contrib.syndication.feeds import Feed
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext as _
 from django.core.exceptions import ObjectDoesNotExist
@@ -67,6 +71,7 @@ class RssIndividualQuestionFeed(Feed):
         )
 
         answers = Post.objects.get_answers().filter(thread = item.thread)
+
         for answer in answers:
             chain_elements.append([answer,])
             chain_elements.append(
@@ -134,7 +139,7 @@ class RssLastestQuestionsFeed(Feed):
         """returns url without the slug
         because the slug can change
         """
-        return askbot_settings.APP_URL + item.get_absolute_url(no_slug = True)
+        return self.link + item.get_absolute_url(no_slug = True)
 
     def item_description(self, item):
         """returns the description for the item
@@ -163,8 +168,6 @@ class RssLastestQuestionsFeed(Feed):
                 qs = qs.filter(thread__tags__name = tag)
 
         return qs.order_by('-thread__last_activity_at')[:30]
-
-
 
 def main():
     """main function for use as a script
